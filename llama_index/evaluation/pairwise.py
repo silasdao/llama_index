@@ -127,23 +127,20 @@ class PairwiseComparisonEvaluator(BaseEvaluator):
     ) -> EvaluationResult:
         """Resolve eval results from evaluation + flipped evaluation."""
         if eval_result.score == flipped_eval_result.score:
-            if eval_result.score == 0 or eval_result.score == 1:
-                return EvaluationResult(
+            return (
+                EvaluationResult(
                     query=eval_result.query,
                     response=eval_result.response,
                     passing=None,
                     score=0.5,
                     feedback="It is not clear which answer is better.",
                 )
-            else:
-                # Both are 0.5, return original eval_result
-                return eval_result
-        elif eval_result.score == 0.5:
+                if eval_result.score in [0, 1]
+                else eval_result
+            )
+        else:
             # in this case, flipped_eval_result.score is either 0 or 1
             # TODO: seems messy to re-flip flipped_eval_result, keep original for now
-            return eval_result
-        else:
-            # in this case, eval_result.score is either 0 or 1
             return eval_result
 
     async def aevaluate(

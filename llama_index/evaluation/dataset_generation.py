@@ -252,9 +252,6 @@ class DatasetGenerator:
                 qr_responses = await async_module.gather(*qr_tasks)
                 for query_id, qa_response in zip(cur_query_keys, qr_responses):
                     responses_dict[query_id] = str(qa_response)
-            else:
-                pass
-
         query_ids = list(queries.keys())
         if num is not None:
             query_ids = query_ids[:num]

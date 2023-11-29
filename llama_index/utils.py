@@ -187,9 +187,7 @@ def retry_on_exceptions_with_backoff(
 
 def truncate_text(text: str, max_length: int) -> str:
     """Truncate text to a maximum length."""
-    if len(text) <= max_length:
-        return text
-    return text[: max_length - 3] + "..."
+    return text if len(text) <= max_length else f"{text[:max_length - 3]}..."
 
 
 def iter_batch(iterable: Union[Iterable, Generator], size: int) -> Iterable:
@@ -200,10 +198,10 @@ def iter_batch(iterable: Union[Iterable, Generator], size: int) -> Iterable:
     """
     source_iter = iter(iterable)
     while source_iter:
-        b = list(islice(source_iter, size))
-        if len(b) == 0:
+        if b := list(islice(source_iter, size)):
+            yield b
+        else:
             break
-        yield b
 
 
 def concat_dirs(dirname: str, basename: str) -> str:
@@ -226,7 +224,7 @@ def get_tqdm_iterable(items: Iterable, show_progress: bool, desc: str) -> Iterab
         try:
             from tqdm.auto import tqdm
 
-            return tqdm(items, desc=desc)
+            return tqdm(_iterator, desc=desc)
         except ImportError:
             pass
     return _iterator
@@ -360,11 +358,7 @@ def get_color_mapping(
     Returns:
         Dict[str, str]: Mapping of items to colors.
     """
-    if use_llama_index_colors:
-        color_palette = _LLAMA_INDEX_COLORS
-    else:
-        color_palette = _ANSI_COLORS
-
+    color_palette = _LLAMA_INDEX_COLORS if use_llama_index_colors else _ANSI_COLORS
     colors = list(color_palette.keys())
     return {item: colors[i % len(colors)] for i, item in enumerate(items)}
 
@@ -418,6 +412,4 @@ def infer_torch_device() -> str:
         has_cuda = torch.cuda.is_available()
     if has_cuda:
         return "cuda"
-    if torch.backends.mps.is_available():
-        return "mps"
-    return "cpu"
+    return "mps" if torch.backends.mps.is_available() else "cpu"
