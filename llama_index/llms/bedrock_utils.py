@@ -48,7 +48,7 @@ CHAT_ONLY_MODELS = {
     "anthropic.claude-v1": 100000,
     "anthropic.claude-v2": 100000,
 }
-BEDROCK_FOUNDATION_LLMS = {**COMPLETION_MODELS, **CHAT_ONLY_MODELS}
+BEDROCK_FOUNDATION_LLMS = COMPLETION_MODELS | CHAT_ONLY_MODELS
 
 # Only the following models support streaming as
 # per result of Bedrock.Client.list_foundation_models
@@ -132,17 +132,6 @@ def completion_with_retry(
             modelId=model, body=request_body
         )
     return client.invoke_model(modelId=model, body=request_body)
-    retry_decorator = _create_retry_decorator(client=client, max_retries=max_retries)
-
-    @retry_decorator
-    def _completion_with_retry(**kwargs: Any) -> Any:
-        if stream:
-            return client.invoke_model_with_response_stream(
-                modelId=model, body=request_body
-            )
-        return client.invoke_model(modelId=model, body=request_body)
-
-    return _completion_with_retry(**kwargs)
 
 
 def _message_to_bedrock_prompt(message: ChatMessage) -> str:
@@ -176,14 +165,14 @@ def messages_to_bedrock_prompt(messages: Sequence[ChatMessage]) -> str:
 
 
 def get_request_body(provider: str, prompt: str, inference_paramters: dict) -> dict:
-    if provider == "amazon":
-        response_body = {
+    return (
+        {
             "inputText": prompt,
             "textGenerationConfig": {**inference_paramters},
         }
-    else:
-        response_body = {"prompt": prompt, **inference_paramters}
-    return response_body
+        if provider == "amazon"
+        else {"prompt": prompt, **inference_paramters}
+    )
 
 
 def get_text_from_response(provider: str, response: dict, stream: bool = False) -> str:

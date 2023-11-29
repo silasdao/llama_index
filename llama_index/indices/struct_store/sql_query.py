@@ -163,20 +163,15 @@ class NLStructStoreQueryEngine(BaseQueryEngine):
 
         """
         if self._sql_context_container.context_str is not None:
-            tables_desc_str = self._sql_context_container.context_str
-        else:
-            table_desc_list = []
-            context_dict = self._sql_context_container.context_dict
-            if context_dict is None:
-                raise ValueError(
-                    "context_dict must be provided. There is currently no "
-                    "table context."
-                )
-            for table_desc in context_dict.values():
-                table_desc_list.append(table_desc)
-            tables_desc_str = "\n\n".join(table_desc_list)
-
-        return tables_desc_str
+            return self._sql_context_container.context_str
+        context_dict = self._sql_context_container.context_dict
+        if context_dict is None:
+            raise ValueError(
+                "context_dict must be provided. There is currently no "
+                "table context."
+            )
+        table_desc_list = list(context_dict.values())
+        return "\n\n".join(table_desc_list)
 
     def _query(self, query_bundle: QueryBundle) -> Response:
         """Answer a query."""
@@ -276,8 +271,8 @@ class BaseSQLTableQueryEngine(BaseQueryEngine):
             query_bundle
         )
 
-        sql_query_str = metadata["sql_query"]
         if self._synthesize_response:
+            sql_query_str = metadata["sql_query"]
             partial_synthesis_prompt = self._response_synthesis_prompt.partial_format(
                 sql_query=sql_query_str,
             )
@@ -302,8 +297,8 @@ class BaseSQLTableQueryEngine(BaseQueryEngine):
             query_bundle
         )
 
-        sql_query_str = metadata["sql_query"]
         if self._synthesize_response:
+            sql_query_str = metadata["sql_query"]
             partial_synthesis_prompt = self._response_synthesis_prompt.partial_format(
                 sql_query=sql_query_str,
             )

@@ -260,13 +260,16 @@ class LangchainPromptTemplate(BasePromptTemplate):
         prompt_type: str = PromptType.CUSTOM,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
-        if selector is None:
-            if template is None:
-                raise ValueError("Must provide either template or selector.")
+        if (
+            selector is None
+            and template is None
+            or selector is not None
+            and template is not None
+        ):
+            raise ValueError("Must provide either template or selector.")
+        elif selector is None:
             selector = LangchainSelector(default_prompt=template)
         else:
-            if template is not None:
-                raise ValueError("Must provide either template or selector.")
             selector = selector
 
         kwargs = selector.default_prompt.partial_variables
@@ -298,37 +301,37 @@ class LangchainPromptTemplate(BasePromptTemplate):
 
     def format(self, llm: Optional[LLM] = None, **kwargs: Any) -> str:
         """Format the prompt into a string."""
-        if llm is not None:
-            if not isinstance(llm, LangChainLLM):
-                raise ValueError("Must provide a LangChainLLM.")
-            lc_template = self.selector.get_prompt(llm=llm.llm)
-        else:
+        if llm is None:
             lc_template = self.selector.default_prompt
 
+        elif not isinstance(llm, LangChainLLM):
+            raise ValueError("Must provide a LangChainLLM.")
+        else:
+            lc_template = self.selector.get_prompt(llm=llm.llm)
         return lc_template.format(**kwargs)
 
     def format_messages(
         self, llm: Optional[LLM] = None, **kwargs: Any
     ) -> List[ChatMessage]:
         """Format the prompt into a list of chat messages."""
-        if llm is not None:
-            if not isinstance(llm, LangChainLLM):
-                raise ValueError("Must provide a LangChainLLM.")
-            lc_template = self.selector.get_prompt(llm=llm.llm)
-        else:
+        if llm is None:
             lc_template = self.selector.default_prompt
+        elif not isinstance(llm, LangChainLLM):
+            raise ValueError("Must provide a LangChainLLM.")
+        else:
+            lc_template = self.selector.get_prompt(llm=llm.llm)
         lc_prompt_value = lc_template.format_prompt(**kwargs)
         lc_messages = lc_prompt_value.to_messages()
         return from_lc_messages(lc_messages)
 
     def get_template(self, llm: Optional[LLM] = None) -> str:
-        if llm is not None:
-            if not isinstance(llm, LangChainLLM):
-                raise ValueError("Must provide a LangChainLLM.")
-            lc_template = self.selector.get_prompt(llm=llm.llm)
-        else:
+        if llm is None:
             lc_template = self.selector.default_prompt
 
+        elif not isinstance(llm, LangChainLLM):
+            raise ValueError("Must provide a LangChainLLM.")
+        else:
+            lc_template = self.selector.get_prompt(llm=llm.llm)
         try:
             return str(lc_template.template)  # type: ignore
         except AttributeError:

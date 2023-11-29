@@ -85,11 +85,10 @@ class OpenAIFineTuningHandler(BaseCallbackHandler):
             self._finetuning_events[event_id].append(response)
 
     def get_finetuning_events(self) -> Dict[str, Dict[str, Any]]:
-        events_dict = {}
-        for event_id, event in self._finetuning_events.items():
-            events_dict[event_id] = {"messages": event[:-1], "response": event[-1]}
-
-        return events_dict
+        return {
+            event_id: {"messages": event[:-1], "response": event[-1]}
+            for event_id, event in self._finetuning_events.items()
+        }
 
     def save_finetuning_events(self, path: str) -> None:
         """

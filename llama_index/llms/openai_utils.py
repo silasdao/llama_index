@@ -73,19 +73,15 @@ GPT3_MODELS = {
     "davinci": 2049,
 }
 
-ALL_AVAILABLE_MODELS = {
-    **GPT4_MODELS,
-    **TURBO_MODELS,
-    **GPT3_5_MODELS,
-    **GPT3_MODELS,
-    **AZURE_TURBO_MODELS,
-}
+ALL_AVAILABLE_MODELS = (
+    GPT4_MODELS
+    | TURBO_MODELS
+    | GPT3_5_MODELS
+    | GPT3_MODELS
+    | AZURE_TURBO_MODELS
+)
 
-CHAT_MODELS = {
-    **GPT4_MODELS,
-    **TURBO_MODELS,
-    **AZURE_TURBO_MODELS,
-}
+CHAT_MODELS = GPT4_MODELS | TURBO_MODELS | AZURE_TURBO_MODELS
 
 
 DISCONTINUED_MODELS = {
@@ -201,10 +197,7 @@ def is_function_calling_model(model: str) -> bool:
 
 
 def get_completion_endpoint(is_chat_model: bool) -> CompletionClientType:
-    if is_chat_model:
-        return openai.ChatCompletion
-    else:
-        return openai.Completion
+    return openai.ChatCompletion if is_chat_model else openai.Completion
 
 
 def to_openai_message_dict(message: ChatMessage, drop_none: bool = False) -> dict:
@@ -307,7 +300,4 @@ def validate_openai_api_key(api_key: Optional[str] = None) -> None:
 
 
 def resolve_from_aliases(*args: Optional[str]) -> Optional[str]:
-    for arg in args:
-        if arg is not None:
-            return arg
-    return None
+    return next((arg for arg in args if arg is not None), None)

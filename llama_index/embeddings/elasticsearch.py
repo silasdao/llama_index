@@ -23,7 +23,7 @@ class ElasticsearchEmbeddings(BaseEmbedding):
     input_field: str
 
     @classmethod
-    def class_name(self) -> str:
+    def class_name(cls) -> str:
         return "ElasticsearchEmbeddings"
 
     def __init__(

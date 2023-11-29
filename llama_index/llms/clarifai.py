@@ -68,10 +68,7 @@ class Clarifai(LLM):
                     model_version={"id": model_version_id},
                 )
 
-        self._is_chat_model = False
-        if "chat" in self._model.app_id or "chat" in self._model.id:
-            self._is_chat_model = True
-
+        self._is_chat_model = "chat" in self._model.app_id or "chat" in self._model.id
         additional_kwargs = additional_kwargs or {}
 
         super().__init__(
